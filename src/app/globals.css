@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — the single source of truth for the app's visual language.
+ * Mirrors design/design-preview.html. A palette refresh (design references are
+ * pending, per CLAUDE.md) should only ever need to touch this block.
+ *
+ * Clinical, calm, high-legibility. One clinical accent (brand). Distinct,
+ * deliberately-far-apart tones for the AI clinical lifecycle: `draft` (amber,
+ * provisional) vs `approved` (green, authoritative) — see RULE 2.
+ */
+@theme {
+  --color-bg: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-surface-2: #fafbfc;
+
+  --color-ink: #0f172a;
+  --color-ink-2: #51617a;
+  --color-ink-3: #94a3b8;
+
+  --color-line: #e4e9f0;
+  --color-line-2: #d5dce6;
+
+  --color-brand: #0e7c86;
+  --color-brand-tint: #e6f4f5;
+  --color-brand-line: #b7e0e3;
+
+  --color-approved: #047857;
+  --color-approved-tint: #ecfdf5;
+  --color-approved-line: #a7e3c6;
+
+  --color-draft: #b45309;
+  --color-draft-tint: #fffbeb;
+  --color-draft-line: #f1c27d;
+
+  --color-alert: #be123c;
+  --color-alert-tint: #fff1f2;
+  --color-alert-line: #f6c0cb;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, Menlo, Consolas, monospace;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* RecordingPanel waveform placeholder — a mock visual only, no real audio. */
+@keyframes waveform-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.waveform-bar {
+  animation: waveform-bounce 1s ease-in-out infinite;
+}

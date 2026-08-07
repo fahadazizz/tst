@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NexAura HMS — Clinical Encounter (design preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#F4F6F9; --surface:#FFFFFF; --surface-2:#FAFBFC;
+    --ink:#0F172A; --ink-2:#51617A; --ink-3:#94A3B8;
+    --line:#E4E9F0; --line-2:#D5DCE6;
+    --brand:#0E7C86; --brand-tint:#E6F4F5; --brand-line:#B7E0E3;
+    --approved:#047857; --approved-tint:#ECFDF5; --approved-line:#A7E3C6;
+    --draft:#B45309; --draft-tint:#FFFBEB; --draft-line:#F1C27D;
+    --alert:#BE123C; --alert-tint:#FFF1F2; --alert-line:#F6C0CB;
+    --radius:12px; --radius-sm:8px;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:224px 1fr;min-height:100vh}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+  /* sidebar */
+  .side{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:16px 12px}
+  .brand{display:flex;align-items:center;gap:9px;padding:6px 8px 14px}
+  .brand .mark{width:26px;height:26px;border-radius:7px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:600;font-size:13px}
+  .brand b{font-size:15px;font-weight:600;letter-spacing:-.01em}
+  .fac{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2);cursor:pointer;margin-bottom:14px}
+  .fac small{color:var(--ink-3);font-size:11px;display:block}
+  .fac span{font-weight:500;font-size:12.5px}
+  .fac i{color:var(--ink-3)}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-sm);color:var(--ink-2);text-decoration:none;font-weight:500;font-size:13px}
+  .nav a:hover{background:var(--surface-2)}
+  .nav a.on{background:var(--brand-tint);color:var(--brand)}
+  .nav a .ic{width:17px;text-align:center;opacity:.9}
+  .nav .grp{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);padding:14px 11px 5px;font-weight:600}
+  .me{margin-top:auto;display:flex;align-items:center;gap:9px;padding:9px;border-top:1px solid var(--line)}
+  .av{width:32px;height:32px;border-radius:50%;background:var(--brand-tint);color:var(--brand);display:grid;place-items:center;font-weight:600;font-size:12px;flex:none}
+  .me b{font-size:12.5px;font-weight:600;display:block}
+  .me small{color:var(--ink-3);font-size:11px}
+
+  /* topbar */
+  .main{display:flex;flex-direction:column;min-width:0}
+  .top{display:flex;align-items:center;gap:16px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .crumb{font-size:12.5px;color:var(--ink-3)}
+  .crumb b{color:var(--ink-2);font-weight:500}
+  .search{flex:1;max-width:420px;display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);color:var(--ink-3);font-size:12.5px}
+  .kbd{margin-left:auto;font-family:var(--mono);font-size:10.5px;border:1px solid var(--line-2);border-radius:5px;padding:1px 6px;background:#fff;color:var(--ink-3)}
+  .top .sp{margin-left:auto;display:flex;gap:8px;color:var(--ink-3)}
+  .top .sp span{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line)}
+
+  .wrap{padding:22px 24px;display:flex;flex-direction:column;gap:16px;max-width:1320px}
+
+  /* patient header */
+  .phead{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+  .phead .row{display:flex;align-items:center;gap:16px}
+  .pav{width:52px;height:52px;border-radius:14px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:600;font-size:18px;flex:none}
+  .pname{font-size:19px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+  .pname .ur{font-size:14px;color:var(--ink-3);font-weight:400}
+  .pmeta{display:flex;gap:18px;margin-top:5px;color:var(--ink-2);font-size:12.5px;flex-wrap:wrap}
+  .pmeta b{color:var(--ink);font-weight:500}
+  .ids{margin-left:auto;display:flex;flex-direction:column;gap:7px;align-items:flex-end}
+  .id{display:flex;align-items:center;gap:9px;font-size:12px}
+  .id .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;min-width:64px;text-align:right}
+  .id .val{font-family:var(--mono);font-size:12.5px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:3px 9px;letter-spacing:.02em}
+  .reveal{border:none;background:none;color:var(--brand);font-weight:500;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:3px;font-family:var(--sans)}
+  .tabs{display:flex;gap:4px;margin-top:16px;border-bottom:1px solid var(--line)}
+  .tabs button{border:none;background:none;padding:9px 13px;font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--sans)}
+  .tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
+
+  /* banner */
+  .banner{display:flex;align-items:center;gap:11px;background:var(--alert-tint);border:1px solid var(--alert-line);border-radius:var(--radius);padding:12px 15px}
+  .banner .dot{width:22px;height:22px;border-radius:6px;background:var(--alert);color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
+  .banner b{color:var(--alert);font-weight:600}
+  .banner span{color:#7a2135;font-size:12.5px}
+
+  /* chips */
+  .chiprow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .chiprow .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:500;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-2)}
+  .chip .code{font-family:var(--mono);font-size:11px;color:var(--brand)}
+  .chip.al{background:var(--alert-tint);border-color:var(--alert-line);color:var(--alert)}
+
+  .cols{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:start}
+  @media (max-width:1080px){.cols{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+  .ch{display:flex;align-items:center;gap:9px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .ch h3{font-size:14px;font-weight:600}
+  .ch .when{margin-left:auto;color:var(--ink-3);font-size:12px}
+  .cb{padding:16px 18px}
+
+  /* lifecycle stepper */
+  .steps{display:flex;align-items:center;gap:0;padding:16px 18px 4px}
+  .step{display:flex;align-items:center;gap:8px}
+  .step .b{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;border:1.5px solid var(--line-2);color:var(--ink-3);background:#fff}
+  .step small{font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3)}
+  .step.done .b{background:var(--ink);border-color:var(--ink);color:#fff}
+  .step.done small{color:var(--ink-2)}
+  .step.draft .b{background:var(--draft);border-color:var(--draft);color:#fff}
+  .step.draft small{color:var(--draft)}
+  .step.appr.done .b{background:var(--approved);border-color:var(--approved)}
+  .step.appr.done small{color:var(--approved)}
+  .bar{flex:1;height:2px;background:var(--line);margin:0 10px;min-width:24px}
+
+  .src{margin:8px 18px 4px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2);padding:11px 13px}
+  .src .h{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin-bottom:5px}
+  .src p{color:var(--ink-2);font-size:12.5px;line-height:1.55}
+
+  /* the AI draft / approved panel — the signature */
+  .clin{margin:12px 18px 18px;border-radius:var(--radius);overflow:hidden}
+  .clin.d{border:1.5px dashed var(--draft-line);background:var(--draft-tint)}
+  .clin.a{border:1.5px solid var(--approved-line);background:var(--approved-tint)}
+  .clh{display:flex;align-items:center;gap:10px;padding:12px 15px}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+  .badge.d{background:#fff;border:1px dashed var(--draft-line);color:var(--draft)}
+  .badge.a{background:#fff;border:1px solid var(--approved-line);color:var(--approved)}
+  .prov{margin-left:auto;font-size:11px;color:var(--draft);font-family:var(--mono)}
+  .prov.a{color:var(--approved)}
+  .fields{padding:4px 15px 14px;display:flex;flex-direction:column;gap:11px}
+  .f label{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;display:block;margin-bottom:3px}
+  .clin.d .f label{color:var(--draft)}
+  .clin.a .f label{color:var(--approved)}
+  .f p{font-size:13px;color:var(--ink);line-height:1.5}
+  .acts{display:flex;align-items:center;gap:9px;padding:12px 15px;border-top:1px dashed var(--draft-line)}
+  .btn{border:1px solid var(--line-2);background:#fff;color:var(--ink);border-radius:var(--radius-sm);padding:8px 14px;font-weight:500;font-size:12.5px;cursor:pointer;font-family:var(--sans);display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--ink-3)}
+  .btn.pri{background:var(--approved);border-color:var(--approved);color:#fff}
+  .btn.pri:hover{background:#036a4c}
+  .signed{display:flex;align-items:center;gap:8px;padding:11px 15px;border-top:1px solid var(--approved-line);color:var(--approved);font-size:12px;font-weight:500}
+  .hint{margin-left:auto;font-size:11px;color:var(--draft)}
+
+  /* rail */
+  .rail{display:flex;flex-direction:column;gap:16px}
+  .vitals{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+  .v{background:var(--surface);padding:13px 15px}
+  .v .vk{display:flex;align-items:center;gap:6px;color:var(--ink-3);font-size:11px;font-weight:500}
+  .v .vv{font-family:var(--mono);font-size:19px;font-weight:500;margin-top:3px;font-variant-numeric:tabular-nums}
+  .v .vv u{font-size:11px;text-decoration:none;color:var(--ink-3);font-family:var(--sans);margin-left:2px}
+  .v.flag .vv{color:var(--draft)}
+  .v.flag .vk{color:var(--draft)}
+  .vsrc{padding:9px 15px;font-size:11px;color:var(--ink-3);border-top:1px solid var(--line);display:flex;align-items:center;gap:6px}
+
+  .rx{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .rxrow{display:flex;align-items:center;gap:10px}
+  .rxi{width:34px;height:34px;border-radius:9px;background:var(--brand-tint);color:var(--brand);display:grid;place-items:center;flex:none}
+  .rxrow b{font-size:13px;font-weight:600}
+  .rxrow small{color:var(--ink-3);font-size:11.5px}
+  .pill{margin-left:auto;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--approved-tint);color:var(--approved);border:1px solid var(--approved-line)}
+  .safe{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--approved);background:var(--approved-tint);border:1px solid var(--approved-line);border-radius:var(--radius-sm);padding:7px 10px}
+
+  .arow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--line);cursor:pointer;color:var(--ink-2);font-weight:500;font-size:12.5px}
+  .arow:hover{background:var(--surface-2)}
+  .arow .ai{width:16px;text-align:center;color:var(--brand)}
+  .arow .note{margin-left:auto;font-size:10.5px;color:var(--ink-3);font-weight:400}
+  .arow.lock{cursor:not-allowed;color:var(--ink-3)}
+  .arow.lock .ai{color:var(--ink-3)}
+
+  .queue{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+  .q{background:var(--surface);padding:12px;text-align:center}
+  .q small{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+  .q b{display:block;font-family:var(--mono);font-size:18px;font-weight:500;margin-top:3px}
+  .qhead{padding:11px 16px;font-size:12.5px;color:var(--ink-2)}
+  .qhead b{color:var(--ink);font-weight:600}
+
+  .foot{padding:6px 4px 24px;color:var(--ink-3);font-size:11.5px;display:flex;align-items:center;gap:7px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div class="brand"><span class="mark">N</span><b>NexAura HMS</b></div>
+    <div class="fac" title="Switch facility">
+      <div><small>Facility</small><span>MedCare Lahore</span></div>
+      <i>⌄</i>
+    </div>
+    <nav class="nav">
+      <a href="#"><span class="ic">▤</span>Dashboard</a>
+      <a href="#" class="on"><span class="ic">◎</span>Patients</a>
+      <a href="#"><span class="ic">✎</span>Consultations</a>
+      <div class="grp">Operations</div>
+      <a href="#"><span class="ic">▦</span>Appointments</a>
+      <a href="#"><span class="ic">≣</span>Queue</a>
+      <a href="#"><span class="ic">⇄</span>Referrals</a>
+      <div class="grp">Foundation</div>
+      <a href="#"><span class="ic">◈</span>Staff &amp; roles</a>
+      <a href="#"><span class="ic">⚙</span>Settings</a>
+    </nav>
+    <div class="me">
+      <span class="av">AK</span>
+      <div><b>Dr Ayesha Khan</b><small>Consultant · Lahore</small></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="top">
+      <div class="crumb">Patients / <b>Fatima Sheikh</b></div>
+      <div class="search">⌕ Search patients by name or CNIC…<span class="kbd">⌘K</span></div>
+      <div class="sp"><span>◔</span><span>✉</span><span>◑</span></div>
+    </div>
+
+    <div class="wrap">
+      <!-- PATIENT HEADER (Karaz) with masked identifiers (Rule 1) -->
+      <section class="phead">
+        <div class="row">
+          <div class="pav">FS</div>
+          <div>
+            <div class="pname">Fatima Sheikh <span class="ur">فاطمہ شیخ</span></div>
+            <div class="pmeta">
+              <span><b>38 yrs</b> · Female</span>
+              <span>Blood group <b>O+</b></span>
+              <span>Registered <b>walk-in</b></span>
+              <span>Preferred language <b>Urdu</b></span>
+            </div>
+          </div>
+          <div class="ids">
+            <div class="id">
+              <span class="lbl">MRN</span>
+              <span class="val num" data-full="MDC-LHR-2026-001234">MDC-LHR-••••-••1234</span>
+              <button class="reveal" data-t>◱ Reveal</button>
+            </div>
+            <div class="id">
+              <span class="lbl">CNIC</span>
+              <span class="val num" data-full="42101-1234567-8">•••••-••••••7-8</span>
+              <button class="reveal" data-t>◱ Reveal</button>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="on">Overview</button>
+          <button>Clinical note</button>
+          <button>Medical history</button>
+          <button>Consents</button>
+        </div>
+      </section>
+
+      <!-- HIGH-RISK BANNER (Karaz) -->
+      <section class="banner">
+        <span class="dot">!</span>
+        <b>Allergy on file — Penicillin (moderate)</b>
+        <span>· Reaction: hives. Prescriptions are checked against this automatically.</span>
+      </section>
+
+      <!-- DIAGNOSIS + ALLERGY CHIPS (Karaz) -->
+      <section class="chiprow">
+        <span class="k">Diagnoses</span>
+        <span class="chip"><span class="code">I20.9</span> Angina pectoris</span>
+        <span class="chip" style="border-style:dashed;color:var(--draft);border-color:var(--draft-line)"><span class="code" style="color:var(--draft)">I20.9</span> Suspected · pending</span>
+        <span class="k" style="margin-left:8px">Allergic to</span>
+        <span class="chip al">Penicillin</span>
+      </section>
+
+      <div class="cols">
+        <!-- MAIN COLUMN: the AI clinical lifecycle (Rule 2 = the signature) -->
+        <section class="card">
+          <div class="ch"><h3>Consultation</h3><span class="when">21 Jul 2026 · 09:30 · Dr Ayesha Khan</span></div>
+
+          <!-- lifecycle stepper -->
+          <div class="steps" id="stepper">
+            <div class="step done"><span class="b">✓</span><small>Transcript</small></div>
+            <div class="bar"></div>
+            <div class="step draft" id="s-draft"><span class="b">2</span><small>AI draft</small></div>
+            <div class="bar"></div>
+            <div class="step appr" id="s-appr"><span class="b">3</span><small>Approved note</small></div>
+          </div>
+
+          <!-- STAGE 1: raw source -->
+          <div class="src">
+            <div class="h">◈ Source material · transcript · not the clinical record</div>
+            <p>"Patient reports intermittent chest tightness over two weeks, worse on exertion, relieved by rest. No radiation to arm. Denies fever. Known penicillin allergy. BP 138/86, HR 78."</p>
+          </div>
+
+          <!-- STAGE 2 / 3: draft transforms to approved on click -->
+          <div class="clin d" id="clin">
+            <div class="clh">
+              <span class="badge d" id="badge">◐ AI-generated · pending clinician review</span>
+              <span class="prov" id="prov">azure_openai · gpt-4o · soap-v3</span>
+            </div>
+            <div class="fields">
+              <div class="f"><label>Assessment</label><p id="f-assess">Possible stable angina — requires clinician confirmation.</p></div>
+              <div class="f"><label>Plan</label><p id="f-plan">Suggest ECG and lipid profile. Clinician to confirm.</p></div>
+              <div class="f"><label>Patient education</label><p>Advised to seek urgent care if pain occurs at rest or worsens.</p></div>
+            </div>
+            <div class="acts" id="acts">
+              <button class="btn pri" id="approve">✓ Approve as clinical note</button>
+              <button class="btn">✎ Edit draft</button>
+              <span class="hint">Advisory only until a clinician approves.</span>
+            </div>
+            <div class="signed" id="signed" style="display:none">
+              ✓ Approved by Dr Ayesha Khan · 21 Jul 2026, 09:41 · version 1 · authoritative record
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT RAIL -->
+        <div class="rail">
+          <!-- VITALS (WeCare) with source (koruux) -->
+          <section class="card">
+            <div class="ch"><h3>Vitals</h3><span class="when">09:28</span></div>
+            <div class="vitals">
+              <div class="v flag"><div class="vk">◇ Blood pressure</div><div class="vv">138/86<u>mmHg</u></div></div>
+              <div class="v"><div class="vk">♡ Heart rate</div><div class="vv">78<u>bpm</u></div></div>
+              <div class="v"><div class="vk">◈ Temp</div><div class="vv">36.7<u>°C</u></div></div>
+              <div class="v"><div class="vk">◉ SpO₂</div><div class="vv">98<u>%</u></div></div>
+            </div>
+            <div class="vsrc">◍ Recorded by staff · not device-synced</div>
+          </section>
+
+          <!-- PRESCRIPTION (Pillio) + safety check (Rule: allergy_alerts) -->
+          <section class="card">
+            <div class="ch"><h3>Prescription</h3></div>
+            <div class="rx">
+              <div class="rxrow">
+                <span class="rxi">℞</span>
+                <div><b>Aspirin 75 mg</b><small style="display:block">Once daily · after food · ongoing</small></div>
+                <span class="pill">Active</span>
+              </div>
+              <div class="safe">✓ Allergy check passed — no penicillin conflict</div>
+            </div>
+          </section>
+
+          <!-- ACTION RAIL (Karaz) with role gating (Rule 3) -->
+          <section class="card">
+            <div class="ch"><h3>Actions</h3></div>
+            <div class="arow"><span class="ai">⇄</span>Refer to another facility<span class="note">reason required</span></div>
+            <div class="arow"><span class="ai">＋</span>Add diagnosis</div>
+            <div class="arow"><span class="ai">℞</span>Add prescription</div>
+            <div class="arow"><span class="ai">✎</span>Order test</div>
+            <div class="arow lock"><span class="ai">🔒</span>Void approved note<span class="note">admin only</span></div>
+          </section>
+
+          <!-- QUEUE (Hourglass) -->
+          <section class="card">
+            <div class="qhead">Outpatient queue · <b>MedCare Lahore</b></div>
+            <div class="queue">
+              <div class="q"><small>Token</small><b>12</b></div>
+              <div class="q"><small>Ahead</small><b>4</b></div>
+              <div class="q"><small>ETA</small><b>16:10</b></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="foot">◈ Mock data · standalone review build · no backend connected</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.reveal[data-t]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var val = btn.parentElement.querySelector('.val');
+      var full = val.getAttribute('data-full');
+      var masked = val.textContent;
+      if (btn.dataset.on === '1'){
+        val.textContent = val.dataset.mask; btn.textContent='◱ Reveal'; btn.dataset.on='0';
+      } else {
+        val.dataset.mask = masked; val.textContent = full;
+        btn.textContent='◲ Hide'; btn.dataset.on='1';
+        console.info('[access-log] identifier.reveal', {patient_id:'pat-fatima'});
+      }
+    });
+  });
+
+  document.getElementById('approve').addEventListener('click', function(){
+    var clin = document.getElementById('clin');
+    clin.classList.remove('d'); clin.classList.add('a');
+    var badge = document.getElementById('badge');
+    badge.className = 'badge a'; badge.textContent = '✓ Approved clinical note';
+    var prov = document.getElementById('prov');
+    prov.className = 'prov a'; prov.textContent = 'derived from llm-001 · Azure OpenAI';
+    document.getElementById('acts').style.display = 'none';
+    document.getElementById('signed').style.display = 'flex';
+    document.getElementById('f-assess').textContent = 'Suspected stable angina. To investigate.';
+    document.getElementById('f-plan').textContent = 'ECG today, lipid profile, review in 1 week.';
+    var sd = document.getElementById('s-draft'); sd.classList.remove('draft'); sd.classList.add('done');
+    sd.querySelector('.b').textContent='✓';
+    var sa = document.getElementById('s-appr'); sa.classList.add('done'); sa.querySelector('.b').textContent='✓';
+    console.info('[access-log] clinical_note.view', {consultation_id:'cons-001', action:'approved'});
+  });
+</script>
+</body>
+</html>
